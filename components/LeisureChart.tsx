@@ -49,7 +49,7 @@ export default function LeisureChart({ afterTaxAnnual, depositAfterTaxAnnual, ex
         ],
     };
 
-    const options = {
+    const options: any = {
         responsive: true,
         maintainAspectRatio: true,
         aspectRatio: 2.2,
@@ -62,11 +62,11 @@ export default function LeisureChart({ afterTaxAnnual, depositAfterTaxAnnual, ex
                 padding: 12,
                 titleFont: {
                     size: 13,
-                    weight: '500' as const,
+                    weight: 500,
                 },
                 bodyFont: {
                     size: 14,
-                    weight: '600' as const,
+                    weight: 600,
                 },
                 callbacks: {
                     label: function (context: any) {
@@ -98,7 +98,7 @@ export default function LeisureChart({ afterTaxAnnual, depositAfterTaxAnnual, ex
                 ticks: {
                     font: {
                         size: 11,
-                        weight: '500' as const,
+                        weight: 500,
                     },
                 },
             },
