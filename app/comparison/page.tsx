@@ -32,16 +32,19 @@ export default function ComparisonPage() {
                 return {
                     ...product,
                     annual: typeData.annual,
-                    monthly: typeData.monthly
+                    monthly: typeData.monthly,
+                    isBest: false
                 };
             });
-            setComparisonResults(results);
 
             const maxAnnual = Math.max(...results.map(r => r.annual));
-            const bestProduct = results.find(r => r.annual === maxAnnual);
-            if (bestProduct) {
-                bestProduct.isBest = true;
-            }
+            results.forEach(r => {
+                if (r.annual === maxAnnual) {
+                    r.isBest = true;
+                }
+            });
+
+            setComparisonResults(results);
         }
 
         const insightsData = getComparisonInsights(selectedAmount, selectedType);
