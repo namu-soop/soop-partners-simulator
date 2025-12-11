@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { calculateInvestment } from '@/lib/calculations';
 import { formatCurrency, formatMoneyInput, numberToKorean } from '@/lib/formatters';
 import LeisureChart from '@/components/LeisureChart';
 import type { SimulationResult } from '@/lib/types';
 
-export default function SimulatorPage() {
+function SimulatorContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -23,13 +23,6 @@ export default function SimulatorPage() {
     const [customerType, setCustomerType] = useState(initialType);
     const [period, setPeriod] = useState(initialPeriod);
     const [result, setResult] = useState<SimulationResult | null>(null);
-
-    // URL 파라미터가 있으면 초기 계산 실행
-    useState(() => {
-        if (initialAmount) {
-            handleSimulate();
-        }
-    });
 
     const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const formatted = formatMoneyInput(e.target.value);
@@ -190,7 +183,7 @@ export default function SimulatorPage() {
                     </div>
                 </div>
 
-                {/* 결과 패널 */}
+                {/* 결과 패널 - 나머지 코드는 동일 */}
                 <div className="bg-white rounded-xl p-8 shadow-sm min-h-[500px]">
                     {!result ? (
                         <div className="flex items-center justify-center h-full min-h-[500px]">
@@ -277,7 +270,7 @@ export default function SimulatorPage() {
                                 </p>
                             </div>
 
-                            {/* 삶의 여유 환산 */}
+                            {/* 삶의 여유 환산 - 나머지 코드 동일하게 유지 */}
                             <div className="bg-white border border-primary/5 rounded-xl p-10 mb-12 shadow-md">
                                 <h4 className="text-2xl font-semibold text-primary mb-2 text-center tracking-tight leading-relaxed">
                                     이 정도 수익이라면, 한 달의 리듬이 이렇게 달라집니다
@@ -357,12 +350,10 @@ export default function SimulatorPage() {
                                         <div>
                                             <h5 className="font-semibold text-gray-900 mb-3">건강을 위한 루틴</h5>
                                             <div className="space-y-2">
-                                                <div className="flex items-start">
+                                                <div className="flex-1 text-sm text-gray-700">
                                                     <span className="text-green-600 mr-2">✓</span>
-                                                    <div className="flex-1 text-sm text-gray-700">
-                                                        <span>필라테스·요가 등 정기 케어</span>
-                                                        <span className="ml-2 font-semibold text-accent">약 {result.lifestyle.healthCare}회</span>
-                                                    </div>
+                                                    <span>필라테스·요가 등 정기 케어</span>
+                                                    <span className="ml-2 font-semibold text-accent">약 {result.lifestyle.healthCare}회</span>
                                                 </div>
                                                 {result.lifestyle.golf > 0 && (
                                                     <div className="flex items-start">
@@ -465,5 +456,13 @@ export default function SimulatorPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function SimulatorPage() {
+    return (
+        <Suspense fallback={<div className="container mx-auto px-6 py-20 text-center">로딩 중...</div>}>
+            <SimulatorContent />
+        </Suspense>
     );
 }
