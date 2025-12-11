@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary-color: #053c3c;
+    --secondary-color: #e0dbd1;
+    --accent-color: #d4a574;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+  }
+}
+
+@layer components {
+
+  /* 페이지 헤더 */
+  .page-header {
+    @apply text-center mb-12;
+  }
+
+  .page-header h2 {
+    @apply text-3xl lg:text-4xl font-bold text-primary mb-3 leading-tight;
+  }
+
+  .page-header p {
+    @apply text-lg text-gray-600 leading-relaxed;
+  }
+
+  /* 상품 카드 */
+  .product-card {
+    @apply bg-white rounded-xl p-8 shadow-sm transition-all duration-300 relative overflow-visible mt-4;
+  }
+
+  .product-card:hover {
+    @apply shadow-2xl -translate-y-1;
+  }
+
+  /* 결과 카드 */
+  .result-card {
+    @apply bg-white rounded-xl p-7 shadow-sm transition-all duration-300 border-2 border-transparent relative overflow-visible mt-4;
+  }
+
+  .result-card:hover {
+    @apply shadow-2xl -translate-y-1 border-accent;
+  }
+
+  .result-card.best {
+    @apply border-accent bg-accent bg-opacity-5;
+  }
+
+  /* 버튼 스타일 */
+  .btn-primary {
+    @apply bg-primary hover:bg-primary-dark text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300;
+  }
+
+  .btn-primary:hover {
+    @apply -translate-y-0.5 shadow-md;
+  }
+
+  .btn-secondary {
+    @apply bg-accent hover:bg-accent-dark text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300;
+  }
+
+  .btn-secondary:hover {
+    @apply -translate-y-0.5 shadow-md;
+  }
+
+  /* 입력 필드 */
+  .input-field {
+    @apply w-full px-4 py-3 border-2 border-gray-300 rounded-lg transition-all duration-300;
+  }
+
+  .input-field:focus {
+    @apply outline-none border-primary ring-4 ring-primary ring-opacity-10;
+  }
+
+  /* 선택 버튼 */
+  .selector-btn {
+    @apply bg-white text-gray-900 border-2 border-gray-300 px-12 py-4 rounded-xl font-semibold text-lg cursor-pointer transition-all duration-300 min-w-[160px];
+  }
+
+  .selector-btn:hover {
+    @apply border-accent text-accent -translate-y-0.5 shadow-md;
+  }
+
+  .selector-btn.active {
+    @apply bg-primary text-white border-primary;
+  }
+
+  /* 애니메이션 */
+  .fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* 스피너 */
+  .spinner {
+    @apply w-12 h-12 border-4 border-white border-opacity-30 border-t-white rounded-full;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

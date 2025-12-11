@@ -1,0 +1,353 @@
+{
+    "products": [
+        {
+            "code": "abc",
+            "name": "ABC 투자",
+            "rate": 0.08,
+            "rateDisplay": "8%",
+            "subtitle": "수도권 핵심 입지 기반의 안정형 전략",
+            "features": [
+                "법적·구조적 안정성을 갖춘 기초자산",
+                "예측 가능한 흐름과 낮은 변동성"
+            ]
+        },
+        {
+            "code": "year1",
+            "name": "1년 기간형 투자",
+            "rate": 0.085,
+            "rateDisplay": "8.5%",
+            "subtitle": "단기 유동성 중심의 전략",
+            "features": [
+                "1년 만기 회수 시점의 유연성 확보",
+                "안정적 운영을 통한 예측 가능한 수익"
+            ]
+        },
+        {
+            "code": "year2",
+            "name": "2년 기간형 투자",
+            "rate": 0.09,
+            "rateDisplay": "9%",
+            "subtitle": "중기 투자 중 가장 높은 수익률",
+            "features": [
+                "2년 만기 중심의 프리미엄 전략",
+                "안정성과 기대수익을 균형 있게 강화한 구조"
+            ],
+            "recommended": true
+        },
+        {
+            "code": "mix_a",
+            "name": "혼합 A (기간1 + 기간2)",
+            "rate": 0.0875,
+            "rateDisplay": "8.75%",
+            "subtitle": "단기 유동성과 중기 수익을 균형 있게 조합한 전략",
+            "features": [
+                "분산 효과로 안정성과 기대수익을 함께 확보"
+            ]
+        },
+        {
+            "code": "mix_b",
+            "name": "혼합 B (ABC + 기간2)",
+            "rate": 0.085,
+            "rateDisplay": "8.5%",
+            "subtitle": "안정 기반 자산과 프리미엄 수익을 함께 추구하는 전략",
+            "features": [
+                "보수성과 성장성을 균형 있게 고려"
+            ]
+        },
+        {
+            "code": "mix_c",
+            "name": "혼합 C (ABC + 기간1)",
+            "rate": 0.0825,
+            "rateDisplay": "8.25%",
+            "subtitle": "안정성과 단기 유동성을 동시에 확보하는 보수적 전략",
+            "features": [
+                "단기 대응력과 위험 관리 중심의 구성"
+            ]
+        }
+    ],
+    "investorTypes": [
+        {
+            "code": "individual",
+            "name": "개인 투자자",
+            "taxRate": 0.275,
+            "taxDisplay": "원천징수 27.5%",
+            "description": "개인 투자 기준의 일반적 세율 구조 적용"
+        },
+        {
+            "code": "general_corp",
+            "name": "일반 법인",
+            "taxRate": 0.209,
+            "taxDisplay": "법인세율 20.9%",
+            "description": "목적에 따라 실효 세율 조정이 가능한 구조",
+            "note": "원천세 환급을 반영한 기준이며, 법인별 세무 처리 방식에 따라 실제 수익은 달라질 수 있습니다."
+        },
+        {
+            "code": "loan_corp",
+            "name": "대부 법인",
+            "taxRate": 0,
+            "taxDisplay": "세율 0%",
+            "description": "과세 없이 목표 수익을 100% 실현하는 구조",
+            "highlighted": true
+        }
+    ],
+    "comparisonData": {
+        "500000000": {
+            "abc": {
+                "individual": {
+                    "annual": 29000000,
+                    "monthly": 2416667
+                },
+                "general_corp": {
+                    "annual": 31640000,
+                    "monthly": 2636667
+                },
+                "loan_corp": {
+                    "annual": 40000000,
+                    "monthly": 3333333
+                }
+            },
+            "year1": {
+                "individual": {
+                    "annual": 30831250,
+                    "monthly": 2569271
+                },
+                "general_corp": {
+                    "annual": 33618750,
+                    "monthly": 2801563
+                },
+                "loan_corp": {
+                    "annual": 42500000,
+                    "monthly": 3541667
+                }
+            },
+            "year2": {
+                "individual": {
+                    "annual": 32662500,
+                    "monthly": 2721875
+                },
+                "general_corp": {
+                    "annual": 35597500,
+                    "monthly": 2966458
+                },
+                "loan_corp": {
+                    "annual": 45000000,
+                    "monthly": 3750000
+                }
+            },
+            "mix_a": {
+                "individual": {
+                    "annual": 31746875,
+                    "monthly": 2645573
+                },
+                "general_corp": {
+                    "annual": 34608125,
+                    "monthly": 2884010
+                },
+                "loan_corp": {
+                    "annual": 43750000,
+                    "monthly": 3645833
+                }
+            },
+            "mix_b": {
+                "individual": {
+                    "annual": 30831250,
+                    "monthly": 2569271
+                },
+                "general_corp": {
+                    "annual": 33618750,
+                    "monthly": 2801563
+                },
+                "loan_corp": {
+                    "annual": 42500000,
+                    "monthly": 3541667
+                }
+            },
+            "mix_c": {
+                "individual": {
+                    "annual": 29915625,
+                    "monthly": 2492969
+                },
+                "general_corp": {
+                    "annual": 32629375,
+                    "monthly": 2719115
+                },
+                "loan_corp": {
+                    "annual": 41250000,
+                    "monthly": 3437500
+                }
+            }
+        },
+        "800000000": {
+            "abc": {
+                "individual": {
+                    "annual": 46400000,
+                    "monthly": 3866667
+                },
+                "general_corp": {
+                    "annual": 50624000,
+                    "monthly": 4218667
+                },
+                "loan_corp": {
+                    "annual": 64000000,
+                    "monthly": 5333333
+                }
+            },
+            "year1": {
+                "individual": {
+                    "annual": 49330000,
+                    "monthly": 4110833
+                },
+                "general_corp": {
+                    "annual": 53790000,
+                    "monthly": 4482500
+                },
+                "loan_corp": {
+                    "annual": 68000000,
+                    "monthly": 5666667
+                }
+            },
+            "year2": {
+                "individual": {
+                    "annual": 52260000,
+                    "monthly": 4355000
+                },
+                "general_corp": {
+                    "annual": 56956000,
+                    "monthly": 4746333
+                },
+                "loan_corp": {
+                    "annual": 72000000,
+                    "monthly": 6000000
+                }
+            },
+            "mix_a": {
+                "individual": {
+                    "annual": 50795000,
+                    "monthly": 4232917
+                },
+                "general_corp": {
+                    "annual": 55373000,
+                    "monthly": 4614417
+                },
+                "loan_corp": {
+                    "annual": 70000000,
+                    "monthly": 5833333
+                }
+            },
+            "mix_b": {
+                "individual": {
+                    "annual": 49330000,
+                    "monthly": 4110833
+                },
+                "general_corp": {
+                    "annual": 53790000,
+                    "monthly": 4482500
+                },
+                "loan_corp": {
+                    "annual": 68000000,
+                    "monthly": 5666667
+                }
+            },
+            "mix_c": {
+                "individual": {
+                    "annual": 47865000,
+                    "monthly": 3988750
+                },
+                "general_corp": {
+                    "annual": 52207000,
+                    "monthly": 4350583
+                },
+                "loan_corp": {
+                    "annual": 66000000,
+                    "monthly": 5500000
+                }
+            }
+        },
+        "1000000000": {
+            "abc": {
+                "individual": {
+                    "annual": 58000000,
+                    "monthly": 4833333
+                },
+                "general_corp": {
+                    "annual": 63280000,
+                    "monthly": 5273333
+                },
+                "loan_corp": {
+                    "annual": 80000000,
+                    "monthly": 6666667
+                }
+            },
+            "year1": {
+                "individual": {
+                    "annual": 61662500,
+                    "monthly": 5138542
+                },
+                "general_corp": {
+                    "annual": 67237500,
+                    "monthly": 5603125
+                },
+                "loan_corp": {
+                    "annual": 85000000,
+                    "monthly": 7083333
+                }
+            },
+            "year2": {
+                "individual": {
+                    "annual": 65325000,
+                    "monthly": 5443750
+                },
+                "general_corp": {
+                    "annual": 71195000,
+                    "monthly": 5932917
+                },
+                "loan_corp": {
+                    "annual": 90000000,
+                    "monthly": 7500000
+                }
+            },
+            "mix_a": {
+                "individual": {
+                    "annual": 63493750,
+                    "monthly": 5291146
+                },
+                "general_corp": {
+                    "annual": 69216250,
+                    "monthly": 5768021
+                },
+                "loan_corp": {
+                    "annual": 87500000,
+                    "monthly": 7291667
+                }
+            },
+            "mix_b": {
+                "individual": {
+                    "annual": 61662500,
+                    "monthly": 5138542
+                },
+                "general_corp": {
+                    "annual": 67237500,
+                    "monthly": 5603125
+                },
+                "loan_corp": {
+                    "annual": 85000000,
+                    "monthly": 7083333
+                }
+            },
+            "mix_c": {
+                "individual": {
+                    "annual": 59831250,
+                    "monthly": 4985938
+                },
+                "general_corp": {
+                    "annual": 65258750,
+                    "monthly": 5438229
+                },
+                "loan_corp": {
+                    "annual": 82500000,
+                    "monthly": 6875000
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,883 @@
+<script>
+/**
+ * 숲파트너스 투자 수익 시뮬레이터
+ * 클라이언트 JavaScript
+ */
+
+// ========================================
+// 1. 전역 변수
+// ========================================
+
+let current_page = 'intro';
+let comparison_data = null;
+let extra_profit_data = null;
+
+// 현재 선택된 값들
+let selected_comparison_amount = 500000000;
+let selected_comparison_type = 'individual';
+let selected_extra_amount = 500000000;
+let selected_extra_type = 'individual';
+
+// ========================================
+// 2. 초기화
+// ========================================
+
+document.addEventListener('DOMContentLoaded', function() {
+  show_page('intro');
+});
+
+// ========================================
+// 3. 페이지 전환
+// ========================================
+
+function show_page(page_name) {
+  document.querySelectorAll('.page').forEach(function(page) {
+    page.classList.remove('active');
+  });
+  
+  var page_element = document.getElementById('page_' + page_name);
+  if (page_element) {
+    page_element.classList.add('active');
+  }
+  
+  document.querySelectorAll('.nav-btn').forEach(function(btn) {
+    btn.classList.remove('active');
+  });
+  
+  var page_index = {
+    'intro': 0,
+    'comparison': 1,
+    'extra': 2,
+    'target': 3,
+    'simulator': 4
+  };
+  
+  var nav_buttons = document.querySelectorAll('.nav-btn');
+  if (page_index[page_name] !== undefined && nav_buttons[page_index[page_name]]) {
+    nav_buttons[page_index[page_name]].classList.add('active');
+  }
+  
+  current_page = page_name;
+  
+  if (page_name === 'comparison') {
+    if (comparison_data) {
+      render_comparison_cards();
+    } else {
+      load_comparison_data();
+    }
+  } else if (page_name === 'extra') {
+    if (extra_profit_data) {
+      render_extra_cards();
+    } else {
+      load_extra_profit_data();
+    }
+  }
+}
+
+// ========================================
+// 4. 비교 페이지 로직
+// ========================================
+
+function load_comparison_data() {
+  show_loading(true);
+  
+  google.script.run
+    .withSuccessHandler(function(data) {
+      comparison_data = data;
+      show_loading(false);
+      if (current_page === 'comparison') {
+        render_comparison_cards();
+      }
+    })
+    .withFailureHandler(function(error) {
+      console.error('데이터 로드 오류:', error);
+      show_loading(false);
+      alert('데이터를 불러오는데 실패했습니다.');
+    })
+    .get_all_comparison_data();
+}
+
+function select_comparison_amount(amount) {
+  selected_comparison_amount = amount;
+  
+  document.querySelectorAll('#page_comparison .amount-selector .amount-btn').forEach(function(btn) {
+    btn.classList.remove('active');
+    if (parseInt(btn.getAttribute('data-amount')) === amount) {
+      btn.classList.add('active');
+    }
+  });
+  
+  render_comparison_cards();
+}
+
+function select_comparison_type(type) {
+  selected_comparison_type = type;
+  
+  document.querySelectorAll('#page_comparison .type-selector .type-btn').forEach(function(btn) {
+    btn.classList.remove('active');
+    if (btn.getAttribute('data-type') === type) {
+      btn.classList.add('active');
+    }
+  });
+  
+  render_comparison_cards();
+}
+
+function render_comparison_cards() {
+  var container = document.getElementById('comparison_result_cards');
+  
+  if (!comparison_data || comparison_data.length === 0) {
+    container.innerHTML = '<div style="text-align:center; padding:60px 20px; color:#999;">데이터를 불러오는 중...</div>';
+    return;
+  }
+  
+  var amount_data = comparison_data.find(function(item) {
+    return item.investment === selected_comparison_amount;
+  });
+  
+  if (!amount_data) {
+    container.innerHTML = '<div style="text-align:center; padding:60px 20px; color:#999;">데이터를 찾을 수 없음</div>';
+    return;
+  }
+  
+  var type_key_map = {
+    'individual': 'individual',
+    'general_corp': 'general_corp',
+    'loan_corp': 'loan_corp'
+  };
+  
+  var type_key = type_key_map[selected_comparison_type];
+  
+  var html = '<div class="result-card-grid">';
+  
+  var max_annual = 0;
+  amount_data.products.forEach(function(product) {
+    if (product.annual[type_key] > max_annual) {
+      max_annual = product.annual[type_key];
+    }
+  });
+  
+  amount_data.products.forEach(function(product) {
+    var annual_value = product.annual[type_key];
+    var monthly_value = product.monthly[type_key];
+    var is_best = annual_value === max_annual;
+    
+    html += '<div class="result-card' + (is_best ? ' best' : '') + '">';
+    html += '<div class="result-card-header">';
+    html += '<div class="result-product-name">' + product.name + '</div>';
+    html += '<div class="result-product-rate">' + product.rate + '</div>';
+    html += '</div>';
+    html += '<div class="result-values">';
+    html += '<div class="result-value-row">';
+    html += '<span class="result-value-label">연간 수익</span>';
+    html += '<span class="result-value-amount">' + format_currency(annual_value) + '</span>';
+    html += '</div>';
+    html += '<div class="result-value-row">';
+    html += '<span class="result-value-label">월간 수익</span>';
+    html += '<span class="result-value-amount">' + format_currency(monthly_value) + '</span>';
+    html += '</div>';
+    html += '</div>';
+    if (is_best) {
+      html += '<div class="result-card-badge">최고 수익</div>';
+    }
+    html += '</div>';
+  });
+  
+  html += '</div>';
+  container.innerHTML = html;
+  
+  // 인사이트 로드
+  load_insights();
+}
+
+// ========================================
+// 5. 추가 수익 페이지 로직
+// ========================================
+
+function load_extra_profit_data() {
+  show_loading(true);
+  
+  google.script.run
+    .withSuccessHandler(function(data) {
+      extra_profit_data = data;
+      show_loading(false);
+      if (current_page === 'extra') {
+        render_extra_cards();
+      }
+    })
+    .withFailureHandler(function(error) {
+      console.error('추가 수익 데이터 로드 오류:', error);
+      show_loading(false);
+      alert('데이터를 불러오는데 실패했습니다.');
+    })
+    .get_extra_profit_data();
+}
+
+function select_extra_amount(amount) {
+  selected_extra_amount = amount;
+  
+  document.querySelectorAll('#page_extra .amount-selector .amount-btn').forEach(function(btn) {
+    btn.classList.remove('active');
+    if (parseInt(btn.getAttribute('data-amount')) === amount) {
+      btn.classList.add('active');
+    }
+  });
+  
+  render_extra_cards();
+}
+
+function select_extra_type(type) {
+  selected_extra_type = type;
+  
+  document.querySelectorAll('#page_extra .type-selector .type-btn').forEach(function(btn) {
+    btn.classList.remove('active');
+    if (btn.getAttribute('data-type') === type) {
+      btn.classList.add('active');
+    }
+  });
+  
+  render_extra_cards();
+}
+
+function render_extra_cards() {
+  var container = document.getElementById('extra_result_cards');
+  
+  if (!extra_profit_data || extra_profit_data.length === 0) {
+    container.innerHTML = '<div style="text-align:center; padding:60px 20px; color:#999;">데이터를 불러오는 중...</div>';
+    document.getElementById('base_annual').textContent = '-';
+    document.getElementById('base_monthly').textContent = '-';
+    return;
+  }
+  
+  var amount_data = extra_profit_data.find(function(item) {
+    return item.investment === selected_extra_amount;
+  });
+  
+  if (!amount_data) {
+    container.innerHTML = '<div style="text-align:center; padding:60px 20px; color:#999;">데이터를 찾을 수 없음</div>';
+    return;
+  }
+  
+  // 선택된 투자자 유형 (추가 수익 계산용)
+  var type_key = selected_extra_type;
+  
+  // 기준은 항상 ABC 투자 (개인)으로 고정 표시
+  document.getElementById('base_annual').textContent = format_currency(amount_data.base.annual);
+  document.getElementById('base_monthly').textContent = format_currency(amount_data.base.monthly);
+  
+  // 최고 추가 수익 찾기
+  var max_annual_extra = 0;
+  amount_data.products.forEach(function(product) {
+    var annual_extra = product.annual[type_key];
+    if (annual_extra > max_annual_extra) {
+      max_annual_extra = annual_extra;
+    }
+  });
+  
+  var html = '<div class="result-card-grid">';
+  
+  amount_data.products.forEach(function(product) {
+    var annual_extra = product.annual[type_key];
+    var monthly_extra = product.monthly[type_key];
+    var has_extra = annual_extra !== 0;
+    var is_best = annual_extra > 0 && annual_extra === max_annual_extra;
+    
+    html += '<div class="extra-profit-card' + (has_extra ? ' positive' : '') + (is_best ? ' best' : '') + '">';
+    html += '<div class="extra-card-header">';
+    html += '<div class="extra-product-name">' + product.name + '</div>';
+    html += '<div class="extra-product-rate">' + product.rate + '</div>';
+    html += '</div>';
+    
+    html += '<div class="extra-profit-section">';
+    html += '<div class="extra-profit-row">';
+    html += '<span class="extra-profit-label">연간 추가 수익</span>';
+    html += '<span class="extra-profit-amount ' + get_amount_class(annual_extra) + '">';
+    html += format_currency_with_sign(annual_extra);
+    html += '</span>';
+    html += '</div>';
+    
+    html += '<div class="extra-profit-row">';
+    html += '<span class="extra-profit-label">월간 추가 수익</span>';
+    html += '<span class="extra-profit-amount ' + get_amount_class(monthly_extra) + '">';
+    html += format_currency_with_sign(monthly_extra);
+    html += '</span>';
+    html += '</div>';
+    html += '</div>';
+    
+    if (is_best) {
+      html += '<div class="extra-profit-card-badge">최고 추가 수익</div>';
+    }
+    
+    html += '</div>';
+  });
+  
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function get_amount_class(amount) {
+  if (amount > 0) {
+    return 'positive';
+  } else if (amount < 0) {
+    return 'negative';
+  } else {
+    return 'zero';
+  }
+}
+
+// ========================================
+// 6. 인사이트 로직
+// ========================================
+
+function load_insights() {
+  google.script.run
+    .withSuccessHandler(function(result) {
+      if (result.success && result.insights && result.insights.length > 0) {
+        render_insights(result.insights);
+      } else {
+        document.getElementById('insights_section').style.display = 'none';
+      }
+    })
+    .withFailureHandler(function(error) {
+      console.error('인사이트 로드 오류:', error);
+    })
+    .get_comparison_insights(selected_comparison_amount, selected_comparison_type);
+}
+
+function render_insights(insights) {
+  var container = document.getElementById('insights_cards');
+  var section = document.getElementById('insights_section');
+  
+  var html = '';
+  
+  insights.forEach(function(insight) {
+    html += '<div class="insight-card">';
+    html += '<div class="insight-content">';
+    html += '<h4 class="insight-title">' + insight.title + '</h4>';
+    html += '<p class="insight-message">' + insight.message + '</p>';
+    html += '</div>';
+    html += '</div>';
+  });
+  
+  container.innerHTML = html;
+  section.style.display = 'block';
+}
+
+// ========================================
+// 7. 목표 수익 달성 로직
+// ========================================
+
+function calculate_target_profit() {
+  var input_value = document.getElementById('target_monthly_input').value;
+  
+  // 콤마 제거 후 숫자 변환
+  var target_monthly = parseFloat(input_value.replace(/,/g, ''));
+  
+  if (!target_monthly || isNaN(target_monthly) || target_monthly <= 0) {
+    alert('올바른 목표 수익을 입력해주세요.');
+    return;
+  }
+  
+  show_loading(true);
+  
+  google.script.run
+    .withSuccessHandler(function(result) {
+      show_loading(false);
+      if (result.success) {
+        display_target_result(result);
+      } else {
+        alert('계산 중 오류가 발생했습니다: ' + result.error);
+      }
+    })
+    .withFailureHandler(function(error) {
+      show_loading(false);
+      alert('계산 중 오류가 발생했습니다: ' + error.message);
+    })
+    .calculate_required_investment(target_monthly);
+}
+
+function display_target_result(data) {
+  document.getElementById('target_amount_display').textContent = format_currency(data.target_monthly);
+  
+  var html = '<div class="target-result-table">';
+  html += '<table class="target-table">';
+  html += '<thead>';
+  html += '<tr>';
+  html += '<th class="target-th-product">상품</th>';
+  html += '<th class="target-th-rate">세전 수익률</th>';
+  html += '<th class="target-th-amount">개인</th>';
+  html += '<th class="target-th-amount">일반법인</th>';
+  html += '<th class="target-th-amount">대부법인</th>';
+  html += '</tr>';
+  html += '</thead>';
+  html += '<tbody>';
+  
+  data.data.forEach(function(product, index) {
+    // 2년 기간형 찾기 (index 2)
+    var is_recommended = (index === 2);
+    var row_class = is_recommended ? ' recommended-row' : '';
+    
+    html += '<tr class="' + row_class + '">';
+    
+    // 상품명
+    html += '<td class="target-td-product">' + product.name + '</td>';
+    html += '<td class="target-td-rate">' + product.pre_tax_rate.toFixed(2) + '%</td>';
+    
+    // 필요 투자금 표시 (일반법인/대부법인만 강조)
+    ['individual', 'general_corp', 'loan_corp'].forEach(function(type, type_index) {
+      var amount = product.required[type];
+      var should_highlight = is_recommended && (type === 'general_corp' || type === 'loan_corp');
+      var class_name = 'target-td-amount' + (should_highlight ? ' highlight-amount' : '');
+      
+      html += '<td class="' + class_name + '">';
+      html += format_currency_exact(amount);
+      html += '</td>';
+    });
+    
+    html += '</tr>';
+  });
+  
+  html += '</tbody>';
+  html += '</table>';
+  html += '</div>';
+  
+  document.getElementById('target_result_table').innerHTML = html;
+  document.getElementById('target_result_section').style.display = 'block';
+}
+
+// ========================================
+// 8. 시뮬레이션 실행
+// ========================================
+
+function run_simulation() {
+  var amount_input = document.getElementById('input_amount').value;
+  var product = document.getElementById('input_product').value;
+  var customer_type = document.getElementById('input_customer_type').value;
+  var period = document.getElementById('input_period').value;
+  
+  // 콤마 제거 후 숫자 변환
+  var amount = parseFloat(amount_input.replace(/,/g, ''));
+  
+  if (!amount || isNaN(amount) || amount <= 0) {
+    alert('올바른 투자 금액을 입력해주세요.');
+    return;
+  }
+  
+  if (!period || parseFloat(period) < 0.5) {
+    alert('투자 기간은 최소 0.5년 이상이어야 합니다.');
+    return;
+  }
+  
+  show_loading(true);
+  
+  var params = {
+    amount: amount,
+    product: product,
+    customer_type: customer_type,
+    period_years: parseFloat(period)
+  };
+  
+  google.script.run
+    .withSuccessHandler(function(result) {
+      show_loading(false);
+      if (result.success) {
+        display_simulation_result(result.data);
+      } else {
+        alert('계산 중 오류가 발생했습니다: ' + result.error);
+      }
+    })
+    .withFailureHandler(function(error) {
+      show_loading(false);
+      alert('계산 중 오류가 발생했습니다: ' + error.message);
+    })
+    .calculate_investment(params);
+}
+
+function display_simulation_result(data) {
+  var container = document.getElementById('result_container');
+  container.className = 'result-content';
+  
+  var html = '';
+  
+  // 헤더
+  html += '<div class="leisure-result-header">';
+  html += '<h3 class="leisure-title">당신의 선택이 만들어낸 여유입니다</h3>';
+  html += '<p class="leisure-subtitle">' + data.product_name + ' | ' + format_currency(data.investment_amount) + '원 | 수익률 ' + data.rate.toFixed(2) + '%</p>';
+  html += '<p class="leisure-note">조용하지만 확실하게, 자산이 자라는 속도를 확인해보세요</p>';
+  html += '</div>';
+  
+  // 4개 핵심 카드
+  html += '<div class="leisure-summary-cards">';
+  
+  html += '<div class="leisure-summary-card">';
+  html += '<div class="card-label">세후 연 수익</div>';
+  html += '<div class="card-value">' + format_currency(data.after_tax_annual) + '<span class="card-unit">원</span></div>';
+  html += '</div>';
+  
+  html += '<div class="leisure-summary-card">';
+  html += '<div class="card-label">세후 월 수익</div>';
+  html += '<div class="card-value">' + format_currency(data.after_tax_monthly) + '<span class="card-unit">원</span></div>';
+  html += '</div>';
+  
+  html += '<div class="leisure-summary-card highlight">';
+  html += '<div class="card-label">예금 대비 연 추가 수익</div>';
+  html += '<div class="card-value positive">+' + format_currency(data.extra_annual) + '<span class="card-unit">원</span></div>';
+  html += '</div>';
+  
+  html += '<div class="leisure-summary-card highlight">';
+  html += '<div class="card-label">예금 대비 월 추가 수익</div>';
+  html += '<div class="card-value positive">+' + format_currency(data.extra_monthly) + '<span class="card-unit">원</span></div>';
+  html += '</div>';
+  
+  html += '</div>';
+  
+  html += '<div class="result-message">';
+  html += '<p>동일한 금액이라도, 선택에 따라 삶이 만들어내는 공간은 달라집니다.</p>';
+  html += '</div>';
+  
+  // 삶의 여유 환산
+  html += '<div class="leisure-lifestyle-section">';
+  html += '<h4 class="lifestyle-title">이 정도 수익이라면, 한 달의 리듬이 이렇게 달라집니다</h4>';
+  html += '<p class="lifestyle-subtitle">당신의 일상에 자연스럽게 스며드는 여유들을 담아보았습니다</p>';
+  html += '<div class="lifestyle-grid">';
+  
+  var lifestyle_items = [
+    {
+      category: '가족과의 시간',
+      items: [
+        {label: '편안한 한식·퓨전 식사', value: data.lifestyle.family_meal, unit: '회'},
+        {label: '기념일이나 여유로운 저녁 외식', value: Math.floor(data.lifestyle.family_meal * 0.6), unit: '회'}
+      ]
+    },
+    {
+      category: '지인과의 만남',
+      items: [
+        {label: '점심 모임', value: data.lifestyle.meeting, unit: '회'},
+        {label: '조용한 레스토랑에서의 식사', value: Math.floor(data.lifestyle.meeting * 0.3), unit: '회'}
+      ]
+    },
+    {
+      category: '취미와 자기관리',
+      items: [
+        {label: '가벼운 취미 강좌', value: data.lifestyle.hobby, unit: '개'},
+        {label: '개인 레슨 혹은 소규모 클래스', value: Math.floor(data.lifestyle.hobby * 2), unit: '회'}
+      ]
+    },
+    {
+      category: '건강을 위한 루틴',
+      items: [
+        {label: '필라테스·요가 등 정기 케어', value: data.lifestyle.health_care, unit: '회'},
+        {label: '골프 라운딩', value: data.lifestyle.golf, unit: '회'}
+      ]
+    },
+    {
+      category: '재충전의 시간',
+      items: [
+        {label: '근교 1박 여행', value: data.lifestyle.short_trip, unit: '회'},
+        {label: '나만의 고요한 시간', value: data.lifestyle.personal_time, unit: '시간'}
+      ]
+    }
+  ];
+  
+  lifestyle_items.forEach(function(category) {
+    html += '<div class="lifestyle-category">';
+    html += '<h5 class="category-title">' + category.category + '</h5>';
+    category.items.forEach(function(item) {
+      if (item.value > 0) {
+        html += '<div class="lifestyle-item">';
+        html += '<div class="lifestyle-icon">✓</div>';
+        html += '<div class="lifestyle-text">';
+        html += '<span class="lifestyle-label">' + item.label + '</span>';
+        html += '<span class="lifestyle-value">약 ' + item.value + item.unit + '</span>';
+        html += '</div>';
+        html += '</div>';
+      }
+    });
+    html += '</div>';
+  });
+  
+  html += '</div>';
+  html += '<p class="lifestyle-footer">지출의 목적이 아닌, 삶의 리듬을 위한 여유.<br>숲파트너스는 그 균형을 함께 설계합니다.</p>';
+  html += '</div>';
+  
+  // 시간 가치 환산
+  html += '<div class="leisure-time-section">';
+  html += '<h4 class="time-title">예금에 두었을 때보다<br>당신에게 돌아오는 "시간"이 더 많습니다</h4>';
+  html += '<div class="time-value-card">';
+  html += '<div class="time-big-number">연 ' + format_currency(Math.floor(data.leisure_hours)) + '<span class="time-unit">시간</span></div>';
+  html += '<div class="time-description">자산에서 얻는 건 숫자가 아니라,<br>내 삶의 속도를 다시 선택할 수 있는 힘입니다</div>';
+  html += '</div>';
+  html += '</div>';
+  
+  // 그래프
+  html += '<div class="result-chart">';
+  html += '<h4 class="chart-title">선택의 차이는 시간이 지날수록 더 크게 드러납니다</h4>';
+  html += '<canvas id="result_chart"></canvas>';
+  html += '</div>';
+  
+  // 마무리 메시지
+  html += '<div class="result-final-message">';
+  html += '<h4>지금의 선택이, 내일의 품격을 만듭니다</h4>';
+  html += '<p>숲파트너스는 단순한 수익이 아닌<br>당신의 삶 전체를 바라보는 금융 파트너입니다</p>';
+  html += '</div>';
+  
+  // 액션 버튼
+  html += '<div class="result-actions">';
+  html += '<button class="btn-export" onclick="export_result()">결과 시트로 내보내기</button>';
+  html += '</div>';
+  
+  container.innerHTML = html;
+  
+  draw_leisure_chart(data);
+  
+  window.last_simulation_result = data;
+}
+
+function draw_leisure_chart(data) {
+  var ctx = document.getElementById('result_chart').getContext('2d');
+  
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['선택한 전략\n(세후 연 수익)', '예금\n(세후 연 수익)', '추가 여유\n(예금 대비)'],
+      datasets: [{
+        label: '금액 (원)',
+        data: [
+          data.after_tax_annual,
+          data.deposit_after_tax_annual,
+          data.extra_annual
+        ],
+        backgroundColor: [
+          'rgba(5, 60, 60, 0.85)',
+          'rgba(224, 219, 209, 0.85)',
+          'rgba(212, 165, 116, 0.85)'
+        ],
+        borderColor: [
+          'rgba(5, 60, 60, 1)',
+          'rgba(224, 219, 209, 1)',
+          'rgba(212, 165, 116, 1)'
+        ],
+        borderWidth: 1.5
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      aspectRatio: 2.2,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          backgroundColor: 'rgba(5, 60, 60, 0.95)',
+          padding: 12,
+          titleFont: {
+            size: 13,
+            weight: '500'
+          },
+          bodyFont: {
+            size: 14,
+            weight: '600'
+          },
+          callbacks: {
+            label: function(context) {
+              return format_currency(Math.abs(context.parsed.y)) + '원';
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: 'rgba(0, 0, 0, 0.05)',
+            drawBorder: false
+          },
+          ticks: {
+            font: {
+              size: 11
+            },
+            callback: function(value) {
+              return format_currency(value) + '원';
+            }
+          }
+        },
+        x: {
+          grid: {
+            display: false
+          },
+          ticks: {
+            font: {
+              size: 11,
+              weight: '500'
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function export_result() {
+  if (!window.last_simulation_result) {
+    alert('내보낼 결과가 없습니다.');
+    return;
+  }
+  
+  show_loading(true);
+  
+  google.script.run
+    .withSuccessHandler(function(result) {
+      show_loading(false);
+      if (result.success) {
+        alert('결과가 시트로 내보내기 되었습니다!\n시트명: ' + result.sheet_name);
+        window.open(result.url, '_blank');
+      } else {
+        alert('내보내기 중 오류가 발생했습니다: ' + result.error);
+      }
+    })
+    .withFailureHandler(function(error) {
+      show_loading(false);
+      alert('내보내기 중 오류가 발생했습니다: ' + error.message);
+    })
+    .export_to_sheet(window.last_simulation_result);
+}
+
+// ========================================
+// 9. 유틸리티 함수
+// ========================================
+
+function format_currency(value) {
+  if (value == null || isNaN(value)) {
+    return '0';
+  }
+  return Math.round(value).toLocaleString('ko-KR');
+}
+
+function format_currency_exact(value) {
+  if (value == null || isNaN(value)) {
+    return '0';
+  }
+  // 반올림 금지 - 정확한 금액 표시
+  return Math.floor(value).toLocaleString('ko-KR');
+}
+
+function format_currency_with_sign(value) {
+  if (value == null || isNaN(value)) {
+    return '0';
+  }
+  var formatted = Math.round(Math.abs(value)).toLocaleString('ko-KR');
+  if (value > 0) {
+    return '+' + formatted;
+  } else if (value < 0) {
+    return '-' + formatted;
+  } else {
+    return formatted;
+  }
+}
+
+/**
+ * 금액 입력 필드 실시간 포맷팅
+ * - 숫자만 입력
+ * - 콤마 자동 추가
+ * - 소수점 제거
+ */
+function format_money_input(input) {
+  var value = input.value;
+  
+  // 숫자만 추출 (콤마, 공백 제거)
+  value = value.replace(/[^\d]/g, '');
+  
+  // 빈 값이면 그대로
+  if (value === '') {
+    input.value = '';
+    return;
+  }
+  
+  // 숫자로 변환 후 콤마 추가
+  var num = parseInt(value, 10);
+  input.value = num.toLocaleString('ko-KR');
+}
+
+/**
+ * 한글 금액 변환 및 표시
+ */
+function update_korean_amount(page) {
+  var input_id = page === 'target' ? 'target_monthly_input' : 'input_amount';
+  var korean_id = page === 'target' ? 'target_korean_amount' : 'simulator_korean_amount';
+  
+  var input = document.getElementById(input_id);
+  var korean_display = document.getElementById(korean_id);
+  
+  if (!input || !korean_display) {
+    return;
+  }
+  
+  var value = input.value.replace(/,/g, '');
+  
+  if (value === '' || value === '0') {
+    korean_display.textContent = '';
+    return;
+  }
+  
+  var num = parseInt(value, 10);
+  if (isNaN(num)) {
+    korean_display.textContent = '';
+    return;
+  }
+  
+  korean_display.textContent = number_to_korean(num);
+}
+
+/**
+ * 숫자를 한글로 변환
+ */
+function number_to_korean(num) {
+  if (num === 0) return '영원';
+  
+  var units = ['', '만', '억', '조'];
+  var digit_units = ['', '십', '백', '천'];
+  var numbers = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+  
+  var result = '';
+  var unit_index = 0;
+  
+  while (num > 0) {
+    var part = num % 10000;
+    if (part > 0) {
+      var part_str = '';
+      
+      for (var i = 0; i < 4; i++) {
+        var digit = part % 10;
+        if (digit > 0) {
+          // 1천, 1백, 1십의 경우 '일' 생략
+          if (digit === 1 && i > 0) {
+            part_str = digit_units[i] + part_str;
+          } else {
+            part_str = numbers[digit] + digit_units[i] + part_str;
+          }
+        }
+        part = Math.floor(part / 10);
+      }
+      
+      result = part_str + units[unit_index] + result;
+    }
+    
+    num = Math.floor(num / 10000);
+    unit_index++;
+  }
+  
+  return result + '원';
+}
+
+function show_loading(show) {
+  var overlay = document.getElementById('loading_overlay');
+  if (show) {
+    overlay.classList.add('active');
+  } else {
+    overlay.classList.remove('active');
+  }
+}
+
+console.log('숲파트너스 투자 수익 시뮬레이터 로드 완료');
+</script>
